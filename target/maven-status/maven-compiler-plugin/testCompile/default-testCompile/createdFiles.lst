@@ -1,0 +1,4 @@
+com/pse/service/PriceComparisonServiceTest.class
+com/pse/service/SearchServiceTest.class
+com/pse/service/RankingServiceTest.class
+com/pse/crawler/CrawlerFactoryTest.class

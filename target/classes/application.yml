@@ -1,0 +1,36 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: product-search-engine
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/search_db}
+    username: ${DB_USERNAME:platform}
+    password: ${DB_PASSWORD:platform}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      max-block-ms: 5000
+
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:localhost}
+  port: ${ELASTICSEARCH_PORT:9200}
+
+crawler:
+  interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
+  initial-delay-ms: ${CRAWLER_INITIAL_DELAY_MS:30000}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
