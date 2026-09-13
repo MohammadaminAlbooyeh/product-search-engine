@@ -22,6 +22,20 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:
       max-block-ms: 5000
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+          connectiontimeout: 3000
+          timeout: 5000
+          writetimeout: 5000
 
 elasticsearch:
   host: ${ELASTICSEARCH_HOST:localhost}
@@ -30,7 +44,44 @@ elasticsearch:
 crawler:
   interval-ms: ${CRAWLER_INTERVAL_MS:3600000}
   initial-delay-ms: ${CRAWLER_INITIAL_DELAY_MS:30000}
+  http:
+    user-agent: ${CRAWLER_USER_AGENT:product-search-engine-bot/1.0 (+https://example.com/bot)}
+    connect-timeout-ms: ${CRAWLER_CONNECT_TIMEOUT_MS:5000}
+    request-timeout-ms: ${CRAWLER_REQUEST_TIMEOUT_MS:10000}
+    request-delay-ms: ${CRAWLER_REQUEST_DELAY_MS:1000}
+  robots:
+    cache-ttl-ms: ${CRAWLER_ROBOTS_TTL_MS:3600000}
+
+security:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  requests-per-minute: ${RATE_LIMIT_RPM:120}
+
+notifications:
+  email:
+    enabled: ${NOTIFICATIONS_EMAIL_ENABLED:true}
+    from: ${NOTIFICATIONS_EMAIL_FROM:alerts@product-search-engine.local}
+
+ranking:
+  popularity:
+    weight: ${RANKING_POPULARITY_WEIGHT:2.0}
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    mail:
+      enabled: false

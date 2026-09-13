@@ -20,3 +20,14 @@ spring:
 crawler:
   interval-ms: 3600000
   initial-delay-ms: 60000
+
+notifications:
+  email:
+    enabled: false
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
+    redis:
+      enabled: false

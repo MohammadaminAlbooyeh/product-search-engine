@@ -28,6 +28,14 @@ public class Seller {
     @Column(name = "is_digikala", nullable = false)
     private boolean digikala;
 
+    /**
+     * Optional JSON crawl configuration. When set, the HTTP/HTML crawler adapter
+     * scrapes this seller instead of the fixture adapters. See
+     * {@code com.pse.crawler.config.SellerCrawlConfig}.
+     */
+    @Column(name = "crawl_config", columnDefinition = "text")
+    private String crawlConfig;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

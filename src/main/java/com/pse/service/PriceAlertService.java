@@ -4,6 +4,7 @@ import com.pse.exception.ProductNotFoundException;
 import com.pse.model.dto.PriceAlertRequest;
 import com.pse.model.entity.PriceAlert;
 import com.pse.model.entity.PriceEntry;
+import com.pse.notification.EmailNotificationService;
 import com.pse.repository.PriceAlertRepository;
 import com.pse.repository.PriceEntryRepository;
 import com.pse.repository.ProductRepository;
@@ -23,6 +24,7 @@ public class PriceAlertService {
     private final PriceAlertRepository priceAlertRepository;
     private final PriceEntryRepository priceEntryRepository;
     private final ProductRepository productRepository;
+    private final EmailNotificationService emailNotificationService;
 
     @Transactional
     public PriceAlert create(PriceAlertRequest request) {
@@ -63,7 +65,11 @@ public class PriceAlertService {
     }
 
     private void sendEmail(PriceAlert alert, BigDecimal price) {
-        log.info("Price alert triggered for {}: product {} now {}. Notifying {} (mock email)",
-                alert.getEmail(), alert.getProductId(), price);
+        String subject = "Price drop for product " + alert.getProductId();
+        String body = String.format(
+                "Good news! The product you are watching (%s) is now available for %s, "
+                        + "which is at or below your target price of %s.",
+                alert.getProductId(), price.toPlainString(), alert.getTargetPrice().toPlainString());
+        emailNotificationService.send(alert.getEmail(), subject, body);
     }
 }

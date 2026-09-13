@@ -43,7 +43,7 @@ public class CrawlerScheduler {
                     SellerCrawler crawler = crawlerFactory.forSeller(seller);
                     for (SellerCrawler.CrawlItem item : crawler.crawl(seller)) {
                         Product product = Product.builder()
-                                .id(item.productId() != null ? item.productId() : productIdGenerator.generate())
+                                .id(resolveProductId(item, seller))
                                 .name(item.name())
                                 .brand(item.brand())
                                 .category(item.category())
@@ -61,5 +61,15 @@ public class CrawlerScheduler {
         } finally {
             running.set(false);
         }
+    }
+
+    private String resolveProductId(SellerCrawler.CrawlItem item, Seller seller) {
+        if (item.productId() != null && !item.productId().isBlank()) {
+            return item.productId();
+        }
+        String seed = item.url() != null && !item.url().isBlank()
+                ? item.url()
+                : seller.getName() + "|" + item.name();
+        return productIdGenerator.deterministic(seed);
     }
 }

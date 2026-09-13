@@ -36,7 +36,7 @@ public class FuzzyMatcher {
     }
 
     private String normalize(String s) {
-        return s.toLowerCase(Locale.ROOT).replaceAll("[\\s،,]+", " ").trim();
+        return s.toLowerCase(Locale.ROOT).replaceAll("[\\s,]+", " ").trim();
     }
 
     private int levenshtein(String a, String b) {

@@ -4,13 +4,19 @@ import com.pse.model.entity.Seller;
 import com.pse.model.enums.AvailabilityStatus;
 import com.pse.model.enums.ProductCategory;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Fixture adapter used when a Digikala seller has no {@code crawlConfig}. Returns a
+ * static sample catalogue; kept for demos and tests.
+ */
 @Component
+@Order(100)
 @Slf4j
 public class DigikalaCrawlerAdapter implements SellerCrawler {
 

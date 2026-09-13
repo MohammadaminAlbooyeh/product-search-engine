@@ -2,6 +2,9 @@ package com.pse.service;
 
 import com.pse.model.document.ProductDocument;
 import com.pse.model.enums.AvailabilityStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,6 +13,22 @@ import java.util.List;
 
 @Service
 public class RankingService {
+
+    @Nullable
+    private final ProductPopularityService popularityService;
+    private final double popularityWeight;
+
+    /** Used by unit tests and as a no-op default (no popularity signal). */
+    public RankingService() {
+        this(null, 0.0);
+    }
+
+    @Autowired
+    public RankingService(@Nullable ProductPopularityService popularityService,
+                          @Value("${ranking.popularity.weight:2.0}") double popularityWeight) {
+        this.popularityService = popularityService;
+        this.popularityWeight = popularityWeight;
+    }
 
     public double score(ProductDocument doc) {
         double availabilityScore;
@@ -26,8 +45,11 @@ public class RankingService {
                 priceScore = 1.0 / (1.0 + price / 1_000_000);
             }
         }
-        double base = availabilityScore * 10 + priceScore * 3 + doc.getScore();
-        return base;
+        double popularityScore = 0.0;
+        if (popularityService != null && doc.getId() != null) {
+            popularityScore = popularityService.popularityBoost(doc.getId()) * popularityWeight;
+        }
+        return availabilityScore * 10 + priceScore * 3 + popularityScore + doc.getScore();
     }
 
     public List<ProductDocument> rank(List<ProductDocument> documents) {

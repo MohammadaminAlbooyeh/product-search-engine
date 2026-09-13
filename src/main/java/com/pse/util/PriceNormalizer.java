@@ -4,41 +4,32 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+/**
+ * Normalizes raw price strings scraped from seller pages into a {@link BigDecimal}.
+ *
+ * <p>Strips grouping separators and any non-numeric noise (currency labels, units,
+ * whitespace), then parses what remains. Multiple dots are treated as thousands
+ * separators and removed.
+ */
 @Component
 public class PriceNormalizer {
-
-    private static final String PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-    private static final String ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
-    private static final String ASCII_DIGITS = "0123456789";
 
     public BigDecimal normalize(String rawPrice) {
         if (rawPrice == null) {
             return null;
         }
-        String cleaned = rawPrice
-                .replace("تومان", "")
-                .replace("ریال", "")
-                .replace("٬", "")
-                .replace(",", "")
-                .replace("،", "")
-                .trim();
 
-        StringBuilder ascii = new StringBuilder();
-        for (char c : cleaned.toCharArray()) {
-            int pIdx = PERSIAN_DIGITS.indexOf(c);
-            if (pIdx >= 0) {
-                ascii.append(ASCII_DIGITS.charAt(pIdx));
-                continue;
-            }
-            int aIdx = ARABIC_DIGITS.indexOf(c);
-            if (aIdx >= 0) {
-                ascii.append(ASCII_DIGITS.charAt(aIdx));
-                continue;
-            }
-            ascii.append(c);
+        String digits = rawPrice.replaceAll("[^0-9.]", "");
+        long dotCount = digits.chars().filter(ch -> ch == '.').count();
+        if (dotCount > 1) {
+            // Multiple dots can only be thousands separators here.
+            digits = digits.replace(".", "");
+        }
+        if (digits.isEmpty() || ".".equals(digits)) {
+            return null;
         }
         try {
-            return new BigDecimal(ascii.toString());
+            return new BigDecimal(digits);
         } catch (NumberFormatException e) {
             return null;
         }

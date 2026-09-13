@@ -1,0 +1,118 @@
+version: "3.8"
+
+# Local infrastructure for product-search-engine.
+# Start with:  docker compose -f docker/docker-compose.yml up -d
+# The application itself runs separately (mvn spring-boot:run) or as the `app` service below.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pse-postgres
+    environment:
+      POSTGRES_DB: search_db
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pse-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform -d search_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pse-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: pse-elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - pse-es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: pse-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: pse-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: pse-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # web UI
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: pse-app
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/search_db
+      DB_USERNAME: platform
+      DB_PASSWORD: platform
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+    ports:
+      - "8086:8086"
+
+volumes:
+  pse-postgres-data:
+  pse-es-data:
