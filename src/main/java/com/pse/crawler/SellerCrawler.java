@@ -9,8 +9,6 @@ import java.util.List;
 
 public interface SellerCrawler {
 
-    String SUPPORTED_SELLER = "SELLER_NAME";
-
     boolean supports(Seller seller);
 
     List<CrawlItem> crawl(Seller seller) throws CrawlerFailedException;
