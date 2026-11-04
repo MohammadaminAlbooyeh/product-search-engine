@@ -1,0 +1,67 @@
+# Production profile: no baked-in credentials, JSON logging, Prometheus + tracing.
+# Every value below must be supplied by the runtime (Kubernetes Secret/ConfigMap,
+# Docker secrets, or the platform's environment).
+server:
+  forward-headers-strategy: framework
+  tomcat:
+    max-threads: ${TOMCAT_MAX_THREADS:200}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: 5000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    clean-disabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:true}
+
+
+management:
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+security:
+  admin:
+    username: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
+  jwt:
+    secret: ${SECURITY_JWT_SECRET}
+    expiration-seconds: ${SECURITY_JWT_EXPIRATION_SECONDS:3600}
+
+logging:
+  level:
+    root: INFO
+    com.pse: INFO

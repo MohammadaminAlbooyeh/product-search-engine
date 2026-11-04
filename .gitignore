@@ -1,2 +1,27 @@
 target/
 !.gitignore
+
+# Build output / reports
+*.class
+*.jar
+*.war
+*.log
+hs_err_pid*
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.DS_Store
+**/.DS_Store
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Docker volumes / local data
+docker/data/

@@ -1,6 +1,7 @@
 package com.pse.service;
 
 import com.pse.cache.SearchResultCacheService;
+import com.pse.observability.ApplicationMetrics;
 import com.pse.model.document.ProductDocument;
 import com.pse.model.dto.SearchRequest;
 import com.pse.model.dto.SearchResponse;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,12 +31,15 @@ public class SearchService {
     private final FuzzyMatcher fuzzyMatcher;
     private final RankingService rankingService;
     private final SearchResultCacheService cacheService;
+    private final ApplicationMetrics metrics;
 
     @Transactional(readOnly = true)
     public SearchResponse search(SearchRequest request) {
+        long startedAt = System.nanoTime();
         String cacheKey = buildCacheKey(request);
         List<ProductDocument> cached = cacheService.get(cacheKey);
         if (cached != null) {
+            metrics.recordSearch(Duration.ofNanos(System.nanoTime() - startedAt), cached.size(), true);
             return new SearchResponse(cached.size(), request.getPage(), request.getSize(), cached);
         }
 
@@ -75,6 +80,7 @@ public class SearchService {
         List<ProductDocument> pageResults = documents.subList(from, to);
 
         cacheService.put(cacheKey, pageResults);
+        metrics.recordSearch(Duration.ofNanos(System.nanoTime() - startedAt), documents.size(), false);
 
         return SearchResponse.builder()
                 .total(documents.size())

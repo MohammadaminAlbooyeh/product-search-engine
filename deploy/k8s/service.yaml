@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pse-app
+  namespace: product-search-engine
+  labels:
+    app.kubernetes.io/name: product-search-engine
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: product-search-engine
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

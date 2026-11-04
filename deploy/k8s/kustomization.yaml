@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: product-search-engine
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+# Create pse-secrets from secret.example.yaml first (or via External Secrets), then add:
+#  - secret.yaml
+images:
+  - name: product-search-engine
+    newTag: latest

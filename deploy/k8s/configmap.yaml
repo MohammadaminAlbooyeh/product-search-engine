@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pse-config
+  namespace: product-search-engine
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  DB_URL: "jdbc:postgresql://postgres:5432/search_db"
+  DB_USERNAME: "platform"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  ELASTICSEARCH_HOST: "elasticsearch"
+  ELASTICSEARCH_PORT: "9200"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  MAIL_HOST: "smtp"
+  MAIL_PORT: "587"
+  MAIL_SMTP_AUTH: "true"
+  MAIL_SMTP_STARTTLS: "true"
+  NOTIFICATIONS_EMAIL_FROM: "alerts@example.com"
+  TRACING_SAMPLE_PROBABILITY: "0.1"
+  ZIPKIN_ENDPOINT: "http://zipkin:9411/api/v2/spans"

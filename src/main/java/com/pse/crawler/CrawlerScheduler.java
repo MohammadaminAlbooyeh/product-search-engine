@@ -4,6 +4,7 @@ import com.pse.messaging.PriceUpdateProducer;
 import com.pse.model.entity.PriceEntry;
 import com.pse.model.entity.Product;
 import com.pse.model.entity.Seller;
+import com.pse.observability.ApplicationMetrics;
 import com.pse.repository.SellerRepository;
 import com.pse.service.ProductAggregationService;
 import com.pse.util.ProductIdGenerator;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,6 +27,7 @@ public class CrawlerScheduler {
     private final ProductAggregationService aggregationService;
     private final ProductIdGenerator productIdGenerator;
     private final PriceUpdateProducer priceUpdateProducer;
+    private final ApplicationMetrics metrics;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     @Scheduled(fixedDelayString = "${crawler.interval-ms:3600000}", initialDelayString = "${crawler.initial-delay-ms:30000}")
@@ -39,6 +42,8 @@ public class CrawlerScheduler {
                 return;
             }
             for (Seller seller : sellers) {
+                long startedAt = System.nanoTime();
+                int produced = 0;
                 try {
                     SellerCrawler crawler = crawlerFactory.forSeller(seller);
                     for (SellerCrawler.CrawlItem item : crawler.crawl(seller)) {
@@ -53,8 +58,13 @@ public class CrawlerScheduler {
                         PriceEntry entry = aggregationService.upsertPrice(
                                 product.getId(), seller.getName(), item.price(), item.url(), item.availability());
                         priceUpdateProducer.publishPriceUpdate(product.getId(), entry.getPrice(), seller.getId());
+                        produced++;
                     }
+                    metrics.recordCrawl(seller.getName(), produced, true,
+                            Duration.ofNanos(System.nanoTime() - startedAt));
                 } catch (Exception e) {
+                    metrics.recordCrawl(seller.getName(), produced, false,
+                            Duration.ofNanos(System.nanoTime() - startedAt));
                     log.error("Crawl failed for seller {}: {}", seller.getName(), e.getMessage());
                 }
             }

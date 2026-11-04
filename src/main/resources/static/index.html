@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Product Search Engine</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">PSE</span>
+    <div>
+      <h1>Product Search</h1>
+      <p>Search, compare and track prices across sellers</p>
+    </div>
+  </div>
+  <nav class="account">
+    <span id="who" class="who"></span>
+    <button id="auth-toggle" class="ghost">Sign in</button>
+    <button id="logout" class="ghost hidden">Sign out</button>
+  </nav>
+</header>
+
+<main>
+  <section class="search-panel">
+    <form id="search-form" class="search-form">
+      <input id="q" type="search" placeholder="Try: macbook, nike, sony..." autocomplete="off"/>
+      <select id="category">
+        <option value="">All categories</option>
+        <option>ELECTRONICS</option>
+        <option>FASHION</option>
+        <option>HOME</option>
+        <option>BEAUTY</option>
+        <option>SPORTS</option>
+        <option>BOOKS</option>
+        <option>OTHER</option>
+      </select>
+      <select id="sortBy">
+        <option value="relevance">Best match</option>
+        <option value="price_asc">Price: low to high</option>
+        <option value="price_desc">Price: high to low</option>
+      </select>
+      <input id="minPrice" type="number" min="0" placeholder="Min price"/>
+      <input id="maxPrice" type="number" min="0" placeholder="Max price"/>
+      <button type="submit" class="primary">Search</button>
+    </form>
+    <p id="summary" class="summary"></p>
+  </section>
+
+  <section id="results" class="results" aria-live="polite"></section>
+
+  <section id="detail" class="detail hidden">
+    <button id="close-detail" class="ghost back">&larr; Back to results</button>
+    <div id="detail-body"></div>
+  </section>
+</main>
+
+<aside id="auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal-card">
+    <button id="close-auth" class="ghost close" aria-label="Close">&times;</button>
+    <h2 id="auth-title">Account</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="login">Sign in</button>
+      <button class="tab" data-tab="register">Create account</button>
+    </div>
+    <form id="auth-form" class="stack">
+      <label>E-mail<input id="auth-email" type="email" required autocomplete="email"/></label>
+      <label>Password<input id="auth-password" type="password" required minlength="8" autocomplete="current-password"/></label>
+      <label id="name-field" class="hidden">Display name<input id="auth-name" type="text" autocomplete="name"/></label>
+      <p id="auth-error" class="error"></p>
+      <button type="submit" class="primary" id="auth-submit">Sign in</button>
+    </form>
+  </div>
+</aside>
+
+<footer>
+  <span>Product Search Engine</span>
+  <a href="/swagger-ui.html">API docs</a>
+  <a href="/actuator/health">Health</a>
+</footer>
+
+<script src="/js/app.js" defer></script>
+</body>
+</html>

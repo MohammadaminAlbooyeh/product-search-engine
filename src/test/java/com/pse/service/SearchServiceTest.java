@@ -8,9 +8,11 @@ import com.pse.model.entity.Product;
 import com.pse.model.entity.Seller;
 import com.pse.model.enums.AvailabilityStatus;
 import com.pse.model.enums.ProductCategory;
+import com.pse.observability.ApplicationMetrics;
 import com.pse.repository.PriceEntryRepository;
 import com.pse.repository.ProductRepository;
 import com.pse.search.FuzzyMatcher;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +31,7 @@ class SearchServiceTest {
     private final SearchResultCacheService cacheService = mock(SearchResultCacheService.class);
     private final SearchService searchService =
             new SearchService(productRepository, priceEntryRepository, new FuzzyMatcher(),
-                    new RankingService(), cacheService);
+                    new RankingService(), cacheService, new ApplicationMetrics(new SimpleMeterRegistry()));
 
     private Product laptop;
     private Product shoes;

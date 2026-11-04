@@ -6,9 +6,11 @@ import com.pse.model.entity.Product;
 import com.pse.model.entity.Seller;
 import com.pse.model.enums.AvailabilityStatus;
 import com.pse.notification.EmailNotificationService;
+import com.pse.observability.ApplicationMetrics;
 import com.pse.repository.PriceAlertRepository;
 import com.pse.repository.PriceEntryRepository;
 import com.pse.repository.ProductRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -26,7 +28,8 @@ class PriceAlertServiceTest {
     private final ProductRepository productRepo = mock(ProductRepository.class);
     private final EmailNotificationService email = mock(EmailNotificationService.class);
     private final PriceAlertService service =
-            new PriceAlertService(alertRepo, priceRepo, productRepo, email);
+            new PriceAlertService(alertRepo, priceRepo, productRepo, email,
+                    new ApplicationMetrics(new SimpleMeterRegistry()));
 
     @Test
     void notifiesAndDeactivatesWhenPriceAtOrBelowTarget() {

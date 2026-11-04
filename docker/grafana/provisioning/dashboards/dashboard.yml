@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: product-search-engine
+    orgId: 1
+    folder: PSE
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

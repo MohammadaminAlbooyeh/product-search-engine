@@ -5,16 +5,19 @@ import com.pse.model.dto.PriceAlertRequest;
 import com.pse.model.entity.PriceAlert;
 import com.pse.model.entity.PriceEntry;
 import com.pse.notification.EmailNotificationService;
+import com.pse.observability.ApplicationMetrics;
 import com.pse.repository.PriceAlertRepository;
 import com.pse.repository.PriceEntryRepository;
 import com.pse.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -25,27 +28,50 @@ public class PriceAlertService {
     private final PriceEntryRepository priceEntryRepository;
     private final ProductRepository productRepository;
     private final EmailNotificationService emailNotificationService;
+    private final ApplicationMetrics metrics;
 
     @Transactional
     public PriceAlert create(PriceAlertRequest request) {
+        return create(request, request.getEmail(), null);
+    }
+
+    @Transactional
+    public PriceAlert create(PriceAlertRequest request, String email, Long userId) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("email is required");
+        }
         if (!productRepository.existsById(request.getProductId())) {
             throw new ProductNotFoundException(request.getProductId());
         }
         return priceAlertRepository.save(PriceAlert.builder()
                 .productId(request.getProductId())
-                .email(request.getEmail())
+                .userId(userId)
+                .email(email.trim().toLowerCase(Locale.ROOT))
                 .targetPrice(request.getTargetPrice())
                 .active(true)
                 .build());
     }
 
     public List<PriceAlert> listByEmail(String email) {
-        return priceAlertRepository.findByEmail(email);
+        return priceAlertRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT));
+    }
+
+    public List<PriceAlert> listByUserId(Long userId) {
+        return priceAlertRepository.findByUserId(userId);
     }
 
     @Transactional
     public void deactivate(Long id) {
+        deactivate(id, null, true);
+    }
+
+    @Transactional
+    public void deactivate(Long id, String requesterEmail, boolean admin) {
         priceAlertRepository.findById(id).ifPresent(alert -> {
+            if (!admin && (requesterEmail == null
+                    || !alert.getEmail().equalsIgnoreCase(requesterEmail))) {
+                throw new AccessDeniedException("Alert " + id + " does not belong to " + requesterEmail);
+            }
             alert.setActive(false);
             priceAlertRepository.save(alert);
         });
@@ -57,6 +83,7 @@ public class PriceAlertService {
             for (PriceAlert alert : priceAlertRepository.findByProductIdAndActiveTrue(productId)) {
                 if (cheapest.getPrice().compareTo(alert.getTargetPrice()) <= 0) {
                     sendEmail(alert, cheapest.getPrice());
+                    metrics.recordAlertFired();
                     alert.setActive(false);
                     priceAlertRepository.save(alert);
                 }

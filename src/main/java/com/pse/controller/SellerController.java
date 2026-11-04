@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pse.model.entity.Seller;
 import com.pse.repository.SellerRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/sellers")
 @RequiredArgsConstructor
-@Tag(name = "Sellers")
+@Tag(name = "Sellers", description = "Crawler targets and their crawl configuration")
 public class SellerController {
 
     private final SellerRepository sellerRepository;
@@ -29,7 +31,11 @@ public class SellerController {
     }
 
     @PostMapping
-    @Operation(summary = "Register a seller (crawler target). Optional crawlConfig enables the HTTP crawler.")
+    @Operation(summary = "Register a seller (crawler target)",
+            description = "Optional crawlConfig enables the generic HTTP crawler. Known marketplace "
+                    + "domains (Amazon, eBay, Digikala) otherwise use built-in adapters.")
+    @SecurityRequirement(name = "basicAuth")
+    @ApiResponse(responseCode = "201", description = "Seller registered")
     public ResponseEntity<Seller> create(@RequestBody Map<String, Object> body) {
         Seller seller = Seller.builder()
                 .name(String.valueOf(body.get("name")))
@@ -41,6 +47,9 @@ public class SellerController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a seller")
+    @SecurityRequirement(name = "basicAuth")
+    @ApiResponse(responseCode = "204", description = "Seller deleted")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         sellerRepository.deleteById(id);
         return ResponseEntity.noContent().build();

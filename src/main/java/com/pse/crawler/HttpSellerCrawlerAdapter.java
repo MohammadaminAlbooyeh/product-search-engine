@@ -66,7 +66,15 @@ public class HttpSellerCrawlerAdapter implements SellerCrawler {
 
     @Override
     public List<CrawlItem> crawl(Seller seller) throws CrawlerFailedException {
-        SellerCrawlConfig config = parseConfig(seller);
+        return crawlWithConfig(seller, parseConfig(seller));
+    }
+
+    /**
+     * Crawl using an explicit configuration. Used by the built-in marketplace
+     * adapters, which supply sensible defaults when a seller has no stored
+     * {@code crawlConfig}.
+     */
+    public List<CrawlItem> crawlWithConfig(Seller seller, SellerCrawlConfig config) throws CrawlerFailedException {
         if (config.listingUrlTemplate() == null || config.listingUrlTemplate().isBlank()) {
             throw new CrawlerFailedException("crawlConfig.listingUrlTemplate is required for seller " + seller.getName());
         }

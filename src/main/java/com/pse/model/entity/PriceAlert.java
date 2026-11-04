@@ -23,7 +23,10 @@ public class PriceAlert {
     @Column(name = "product_id", nullable = false, length = 50)
     private String productId;
 
-    @Column(name = "email", nullable = false, length = 100)
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "email", nullable = false, length = 150)
     private String email;
 
     @Column(name = "target_price", precision = 19, scale = 2, nullable = false)
